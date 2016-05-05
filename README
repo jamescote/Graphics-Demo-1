@@ -1,0 +1,146 @@
+ASSIGNMENT 4 OVERVIEW:
+
+COMMANDS:
+'left'	  - cycles left through different scenes in order.
+'right'   - cylces right through different scenes in order.
+'s'       - saves the scene to a .png titled: "Part1Test.png" in the program folder.
+'esc'	  - exit the program.
+'a'       - Switches through the different Assignments.
+
+NOTES:
+- Scenes are loaded from a text file.  Can edit the text files if you'd like, names of scenes1-3 are hardcoded into the program.
+- Current Reflection max is 800 iterations.  This causes scene 3 to take a longer time (around 10 min) to render.  
+  This can be changed in EnvironmentManager.cpp; changing the #define MAX_REFLECTIONS variable.
+- Program starts on this assignment.
+
+KNOWN ISSUES:
+- No currently known issues.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FOR PRIOR ASSIGNMENT OVERVIEWS:
+
+ASSIGNMENT 3 OVERVIEW:
+
+COMMANDS:
+'left' 	  - cycles left through different scenes in order.
+'right'	  - cycles right through different scenes in order.
+'up'	  - increases the level*.  Max = 3.
+'down'	  - decreases the level*.  Min = 0
+'scroll'  - using the scroll wheel adjusts the scroll speed on the Scrolling Text scene.  Has no  		    effect on any other scene.
+'f'	  - cycles through the different fonts for each Text Scene.
+'a'	  - cycles through previous assignments, of which all prior controls are applicable.
+
+SCENES:
+In order, the scenes are:
+1. Quadratic Demo
+2. Cubic Demo
+3. Name in Font
+4. Scrolling Text
+
+LEVEL*:
+The level adjusts what's drawn.  It follows these rules:
+level == 0 -> don't draw anything.
+level == 1 -> only draw curve(s).
+level == 2 -> draw curve(s) and control points.
+level == 3 -> draw curve(s), control points and tangents.
+
+CONTROL POINT COLORS:
+The control points are color coded as:
+Start 		= Red
+Middle Points 	= Green
+End 		= Blue
+Each middle point is colored the same.  Using the tangents you can tell the first one is connected to the start point and the second mid-point is connected to the end point for cubic.
+
+KNOWN ISSUES:
+- Scrolling Text scrolls faster when control points and tangents are needed to be drawn.  This is due to the fact that the text takes longer to draw which results in longer peroids of time between updates.  This can be remedied through further iteration, but I've spent enough time on this assignment for now.
+- Previous Assignments have not been fully tested.  I assume they work but something may happen.
+
+EXTRA:
+You can change the color of the text via the command line console.  Hit the enter key and modify the color by: "color 1 <red> <green> <blue>".  Hit enter again to input the command.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ASSIGNMENT 2 OVERVIEW:
+
+COMMANDS:
+'up'      - Used for incrementing Gaussian Blur levels.  Only works when Gaussian Blur is active.
+'down'    - Used for decrementing Gaussian Blue levels.  Same stipulation as incrementing.
+'left'    - Cycle through different images
+'right'   - Same as left, only cycles one direction.
+'enter'   - Hides graphic window, awaits input in console for additional commands, see ADDITIONAL COMMANDS.
+'A'	  - Cycle between Assignments.
+'R'	  - Clears all shaders and resets image to starting size, position and orientation.
+'G'	  - Applies GreyScale. Further presses cycle through the different applications: (.333/.333/.333), (.299/.587/.114), (.213/.715/.072) In that order.
+'Shift+G' - Turns off the GreyScale. 
+'N'	  - Toggle Negative space pass.
+'V'	  - Cycles through Vertical Sobel.  Up to a maximum of 5.  Arbitrary number, maximum can be increased if desired, see below.
+'H'	  - Cycles through Horizontal Sobel.  Max: 5.  See below for way to change.
+'M'	  - Cycles through Unsharp Mask Kernel. Max: 5.  See below for how to change.
+'Shift+V' - Turns off Sobel/Mask Effects. (Sets # of passes to 0).
+'Shift+H' - Turns off Sobel/Mask Effects. (Sets # of passes to 0).
+'Shift+M' - Turns off Sobel/Mask Effects. (Sets # of passes to 0).
+'B'	  - Toggle Gaussian Blur.  Currently no limit to Blur.  Starts to really slow down around 13 iterations.
+
+
+ADDITIONAL COMMANDS:
+Terminal input acts as follows: it will parse the command and expect certain input following the command.  If something is out of place, it ignores the command.
+- Maximum: 128 characters
+(DO NOT USE) 'Load' - Given the name of an image, the program will load the image into the program.
+'Delete' - Deletes the current image from the program.
+
+KNOWN ISSUES:
+- 'Load' command causes weird errors.  It will cause artifacting on not only the image loaded, but also prior images
+	that were in the program.  Loading the hard-coded image on start up doesn't cause those errors though.
+- On Windows: Images start upside down.  Difference between Linux and Windows.
+
+INCREASE MAXIMUM SOBEL APPLICATION:
+in GraphicsManager.cpp:
+#define MAX_SOBEL_PASSES 5 <- set that number to something different to change the maximum number of passes.
+
+ADDITIONAL COMMENTS:
+- All of Assignment 1 continues to work but hasn't been thoroughly tested.  Also fixed issues based on Feedback for Assignment 1.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ASSIGNMENT 1 OVERVIEW:
+
+COMMANDS:
+'up' 	- increases levels
+'down' 	- decreases levels
+'left' 	- move left through different patterns
+'right' - move right through different patterns
+'enter' - enter additional commands into the terminal (details below)
+	- hides the window, shows the window again once input is entered
+'esc'	- close program
+
+ADDITIONAL COMMANDS:
+terminal input acts as follows: it will parse the command and expect certain input following the command.  If something is out of place, it ignores the command.
+"level" <int> - changes the level of the pattern to the given integer
+"color" <int> <float> <float> <float> - changes the nth color to the 3 float values.  There are 3 colors in the system that can be modified.
+"type" <string> - changes the pattern type to one of the following allowable inputs: "SDiamonds", "PSpiral", "STriangle"
+		- Also accepts "MSponge", but that design isn't implemented and the command is ignored
+"draw" <further arguments> - each of the previous commands only expects the one command.  
+			   - the draw command allows the user to enter any number of the previous 3 commands in one line. 
+			   - Maximum: 128 characters
+
+KNOWN ISSUES:
+- No cap on levels. 
+	- STriangle can only go up to 8 levels.  The 9th starts to cause issues.
+	- PSpiral can only go up to 41 levels.  The 42nd starts to cause issues.
+	- SDiamonds can go higher.  Unsure of max levels.
+- 'enter' doesn't set focus to the terminal.  If you have it minimized, you need to open it to enter in commands.
+- changing the level on STriangle through additional commands keeps the fractal as a singular color (color 1).
+
+COLORS:
+- SDiamonds and PSpiral use colors 1 and 2
+- STriangle uses all 3 colors
+- STriangle splits the triangle into 3 colors once it splits for the first time.  Does this on the transition as a special case.
+	this accounts for the monotone color issue.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+REQUIREMENTS:
+- FreeImage(Windows)/Magick++(Linux)
+- OpenGL/GLFW(Windows)
+- FreeType
