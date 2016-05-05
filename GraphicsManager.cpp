@@ -1,0 +1,525 @@
+#include "GraphicsManager.h"
+#include "ImageReader.h"
+#include "ShaderManager.h"
+#include "GeometryManager.h"
+#include "Object_Factory.h"
+#include "EnvironmentManager.h"
+
+// Default Image Locations
+#define BABOON_IMG "image1-mandrill.png"
+#define UCLOGO_IMG "image2-uclogo.png"
+#define AERIAL_IMG "image3-aerial.jpg"
+#define THIRSK_IMG "image4-thirsk.jpg"
+#define PATTERN_IMG "image5-pattern.png"
+#define ELEPHANT_IMG "image-water-elephant.jpg"
+
+// Assignment 3 - Patch Point Count
+#define NUM_CONTROL_POINTS 4
+
+// Assignment 4 - Scene definition/Defines
+#define MAX_A4_SCENES 3
+const string c_sSceneNames[MAX_A4_SCENES] = { "scene1.txt",		// Constant Scene Names for Assignment 4
+											  "scene2.txt",
+											  "scene3.txt"};
+
+// Singleton Variable initialization
+GraphicsManager* GraphicsManager::m_pInstance = NULL;
+
+// Constructor - Private, only accessable within the Graphics Manager
+GraphicsManager::GraphicsManager(GLFWwindow* rWindow)
+{
+	// Initialize and Get Shader and Geometry Managers
+	m_pShaderMngr	= ShaderManager::getInstance();
+	m_pGeometryMngr = GeometryManager::getInstance();
+
+	m_pWindow = rWindow;
+	int iHeight, iWidth;
+	glfwGetWindowSize(m_pWindow, &iWidth, &iHeight);
+	Image pBaboonImg(iHeight, iWidth, BABOON_IMG);
+	Image pUCLogoImg(iHeight, iWidth, UCLOGO_IMG);
+	Image pAerialImg(iHeight, iWidth, AERIAL_IMG);
+	Image pThirskImg(iHeight, iWidth, THIRSK_IMG);
+	Image pPatternImg(iHeight, iWidth, PATTERN_IMG);
+	Image pElephantImg(iHeight, iWidth, ELEPHANT_IMG);
+	
+	// Set up for Assignment 1 (Graphics)
+	for (int i = 0; i < GPX_SIZE; ++i)
+	{
+		m_pGraphicsSet[i] = NULL;
+	}
+	iCurrGraphic = SQUARE_DIAMOND;
+	m_pGraphicsSet[SPIRAL]			= new PSpiral(iHeight, iWidth);
+	m_pGraphicsSet[SQUARE_DIAMOND]	= new SDiamonds( iHeight, iWidth );
+	m_pGraphicsSet[TRI_FRACTAL]		= new STriangle(iHeight, iWidth);
+
+	// Set up for Assignment 2 (Images)
+	m_pImageSet.push_back(pBaboonImg);
+	m_pImageSet.push_back(pUCLogoImg);
+	m_pImageSet.push_back(pAerialImg);
+	m_pImageSet.push_back(pThirskImg);
+	m_pImageSet.push_back(pPatternImg);
+	m_pImageSet.push_back(pElephantImg);
+	iCurrImage = 0;
+
+	// Set up for Assignment 3 (Curves and Splines)
+	for (int i = 0; i < A3_SIZE; ++i)
+	{
+		m_pFontCurveScenes[i] = NULL;
+	}
+	iCurrA3Scene = P3_CURVE;
+	m_pFontCurveScenes[P3_CURVE]	= new Curve(iHeight, iWidth, true);
+	m_pFontCurveScenes[P4_CURVE]	= new Curve(iHeight, iWidth, false);
+	m_pTextDisplay					= new Text(iHeight, iWidth);
+	m_pScrollText					= new ScrollingText(iHeight, iWidth);
+	m_pTextDisplay->setOutput(L"James Coté");
+	m_pScrollText->setOutput(L"The quick brown fox jumps over the lazy dog.");
+	m_pFontCurveScenes[NAME_SCENE]	 = m_pTextDisplay;
+	m_pFontCurveScenes[SCROLL_SCENE] = m_pScrollText;
+
+	// Set up for Assignment 4 (Ray Tracing)
+	m_pCamera = new Camera( iHeight, iWidth );
+	bA4Rendered = false;
+	iCurrA4Scene = 0;
+	Object_Factory::getInstance()->loadFromFile( c_sSceneNames[iCurrA4Scene] );
+	EnvironmentManager::getInstance()->debugEnvironment();
+
+	// Set current Assignment (Changed with 'a' key)
+	m_eAssgState = ASSG_4;
+}
+
+// Singleton Implementations
+// Requires Window to initialize 
+GraphicsManager* GraphicsManager::getInstance(GLFWwindow *rWindow)
+{
+	if (NULL == m_pInstance)
+		m_pInstance = new GraphicsManager(rWindow);
+
+	return m_pInstance;
+}
+
+// Destruct Shaders, Buffers, Arrays and other GL stuff.
+GraphicsManager::~GraphicsManager()
+{
+	// Destruct Assg 1
+	for (int i = 0; i < GPX_SIZE; ++i)
+		if (NULL != m_pGraphicsSet[i])
+			delete m_pGraphicsSet[i];
+
+	// Destruct Assg 2
+	m_pImageSet.clear();
+
+	// Destruct Assg 3
+	for (int i = 0; i < A3_SIZE; ++i)
+		if (NULL != m_pFontCurveScenes[i])
+			delete m_pFontCurveScenes[i];
+
+	// Destruct Assg 4
+	if ( NULL != m_pCamera )
+		delete m_pCamera;
+
+	// Let go of Window Handle
+	m_pWindow = NULL;
+
+	// Gather up and clean up Managers
+	if ( NULL != m_pShaderMngr )
+		delete m_pShaderMngr;
+	
+	Object_Factory* pObjFctry = Object_Factory::getInstance();
+	if ( NULL != pObjFctry )
+		delete pObjFctry;
+
+	EnvironmentManager* pEnvMngr = EnvironmentManager::getInstance();
+	if ( NULL != pEnvMngr )
+		delete pEnvMngr;
+}
+
+// Intended to be called every cycle, or when the graphics need to be updated
+bool GraphicsManager::renderGraphics()
+{
+	// call function to draw our scene
+	RenderScene();
+
+	// scene is rendered to the back buffer, so swap to front for display
+	glfwSwapBuffers(m_pWindow);
+
+	// check for Window events
+	glfwPollEvents();
+
+	return !glfwWindowShouldClose(m_pWindow);
+}
+
+// --------------------------------------------------------------------------
+// Rendering function that draws our scene to the frame buffer
+// Copied from Boilercode Program
+// Will be replaced with functions in Graphic objects.
+void GraphicsManager::RenderScene()
+{
+	switch (m_eAssgState)
+	{
+	case ASSG_1:
+		renderAssg1();
+		break;
+	case ASSG_2:
+		renderAssg2();
+		break;
+	case ASSG_3:
+		renderAssg3();
+		break;
+	case ASSG_4:
+		renderAssg4();
+		break;
+	default:
+		cout << "Error: Invalid Assignment Value: " << m_eAssgState << "." << endl;
+	}
+
+	// check for and report any OpenGL errors
+	CheckGLErrors();
+}
+
+// Rendering program for Assignment 1.
+void GraphicsManager::renderAssg1()
+{
+	// Local Variables
+	const MyGeometry* pGeometry;
+
+	// Render Graphics
+	if (NULL != CURR_GRAPHIC)
+	{
+		// Get Geometry for Assignment 1
+		pGeometry = m_pGeometryMngr->getGeometry(ASSG_1);
+
+		// clear screen to a dark grey colour
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		CheckGLErrors();
+
+		// bind our shader program and the vertex array object containing our
+		// scene geometry, then tell OpenGL to draw our geometry
+		glUseProgram(m_pShaderMngr->getProgram(REGULAR));
+		CheckGLErrors();
+
+		// Bind Vertex Array
+		glBindVertexArray(pGeometry->vertexArray);
+		CheckGLErrors();
+
+		// Generate & Bind Vertices
+		CURR_GRAPHIC->genVertices(pGeometry);
+		CheckGLErrors();
+
+		// Draw 
+		CURR_GRAPHIC->draw();
+		CheckGLErrors();
+
+		// reset state to default (no shader or geometry bound)
+		glBindVertexArray(0);
+		glUseProgram(0);
+	}
+	else
+		cout << "ERROR: Graphic isn't instantiated -> Assignment_1." << endl;
+}
+
+// Rendering program for Assignment 2.
+void GraphicsManager::renderAssg2()
+{
+	const MyGeometry* pGeometry;
+
+	if ((!m_pImageSet.empty()) && (iCurrImage < (signed int)m_pImageSet.size()) && (iCurrImage >= 0))
+	{
+		// Get Geometry for Assignment 2
+		pGeometry = m_pGeometryMngr->getGeometry(ASSG_2);
+
+		// clear screen to a dark grey colour
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		CheckGLErrors();
+		// bind our shader program and the vertex array object containing our
+		// scene geometry, then tell OpenGL to draw our geometry
+		glUseProgram(m_pShaderMngr->getProgram(TEXTURE));
+		glBindVertexArray(pGeometry->vertexArray);
+		glBindTexture(GL_TEXTURE_RECTANGLE, m_pImageSet[iCurrImage].getTextureName());
+		CheckGLErrors();
+
+		CURR_IMAGE.genVertices(pGeometry);
+		CheckGLErrors();
+		CURR_IMAGE.draw();
+		CheckGLErrors();
+		// reset state to default (no shader or geometry bound)
+		glBindVertexArray(0);
+		glUseProgram(0);
+	}
+	else
+		cout << "ERROR: Images not loaded/working for rendering Assignment 2." << endl;
+}
+
+void GraphicsManager::renderAssg3()
+{
+	const MyGeometry* pGeometry;
+
+	if (NULL != CURR_A3_SCENE)
+	{
+		pGeometry = m_pGeometryMngr->getGeometry(ASSG_3);
+
+		m_pFontCurveScenes[iCurrA3Scene]->renderGraphic(pGeometry);
+	}
+	else
+		cout << "ERROR: Curve/Font Scene isn't instantiated -> Assignment_3 Render." << endl;
+}
+
+void GraphicsManager::renderAssg4()
+{
+	if ( !bA4Rendered )
+	{
+		m_pCamera->renderScene();
+		//bA4Rendered = true;
+	}
+}
+
+// Function initializes shaders and geometry.
+// contains any initializion requirements in order to start drawing.
+bool GraphicsManager::initializeGraphics()
+{
+	// Locals
+	bool bError = false;
+
+	// Shaders
+	if (!m_pShaderMngr->initializeShaders())
+	{
+		cout 
+			<< "Couldn't initialize shaders." << endl;
+		bError = true;
+	}
+
+	// Geometry
+	if (initializeGeometry())
+	{
+		cout << "Couldn't initialize Geometry." << endl;
+		bError = true;
+	}
+
+	return bError; 
+}
+
+// Initializes Geometry, currently from boilerplate code
+// Will need to revisit and improve upon.
+
+bool GraphicsManager::initializeGeometry()
+{
+	GLsizeiptr iPtr;
+	void* data;
+
+	m_pImageSet[iCurrImage].bindTextData( &iPtr, &data );
+	m_pGeometryMngr->bindTextureData( ASSG_2, iPtr, data );
+
+	return m_pGeometryMngr->initializeGeometry();
+}
+/***************************************************************\
+ * Assignment 1 - Graphics Modification Functions              *
+\***************************************************************/
+
+// Changes to another graphic based on the offset
+void GraphicsManager::changeScene( int iDirection )
+{
+	switch (m_eAssgState)
+	{
+	case ASSG_1:
+		do
+		{
+			iCurrGraphic += iDirection;
+			iCurrGraphic = iCurrGraphic < 0 ? GPX_SIZE - 1 : iCurrGraphic % GPX_SIZE;
+		} while (NULL == CURR_GRAPHIC);
+		break;
+	case ASSG_2:
+		iCurrImage = (iCurrImage + 1) % m_pImageSet.size();
+		CURR_IMAGE.setUpdate(true);
+		break;
+	case ASSG_3:
+		do
+		{
+			iCurrA3Scene += iDirection;
+			iCurrA3Scene = iCurrA3Scene < 0 ? A3_SIZE - 1 : iCurrA3Scene % A3_SIZE;
+		} while (NULL == CURR_A3_SCENE);
+		CURR_A3_SCENE->setUpdate(true);
+		m_pScrollText->setScroll(SCROLL_SCENE == iCurrA3Scene);
+		break;
+	case ASSG_4:
+		iCurrA4Scene += iDirection;
+		iCurrA4Scene = iCurrA4Scene < 0 ? MAX_A4_SCENES - 1 : iCurrA4Scene % MAX_A4_SCENES;
+		EnvironmentManager::getInstance()->purgeEnvironment();
+		Object_Factory::getInstance()->loadFromFile( c_sSceneNames[iCurrA4Scene] );
+		m_pCamera->update();
+#ifdef DEBUGGING
+		EnvironmentManager::getInstance()->debugEnvironment();
+#endif
+		break;
+	default:
+		cout << "Error: Incorrect Assignment (" << m_eAssgState << ") when changing Graphic." << endl;
+		break;
+	}
+}
+
+// Set a new Type
+void GraphicsManager::setType(eGraphicsEnum eNewGraphic)
+{ 
+	bool bUpdate = (eNewGraphic >= 0 && eNewGraphic < GPX_SIZE) && NULL != m_pGraphicsSet[eNewGraphic];
+	if ( bUpdate )
+		iCurrGraphic = eNewGraphic;
+	CURR_GRAPHIC->setUpdate(bUpdate);
+}
+
+// Color Setter and Getter
+void GraphicsManager::setColor(int iColorIndex, float fR, float fG, float fB)
+{
+	if ( ASSG_1 == m_eAssgState )
+		CURR_GRAPHIC->setColor(iColorIndex, fR, fG, fB);
+	else if ( ASSG_3 == m_eAssgState )
+		CURR_A3_SCENE->setColor(iColorIndex, fR, fG, fB);
+}
+
+void GraphicsManager::getColor(int iColorIndex, float* fR, float* fG, float* fB)
+{
+	CURR_GRAPHIC->getColor(iColorIndex, fR, fG, fB);
+}
+
+// Level Modification (Only works if in assignment 1)
+void GraphicsManager::incrementLevel() 
+{ 
+	if (ASSG_1 == m_eAssgState)
+		setLevel(CURR_GRAPHIC->getLevel() + 1);
+	else if (ASSG_2 == m_eAssgState)
+		 m_pShaderMngr->incrementBlurLevel();
+	else if (ASSG_3 == m_eAssgState)
+		setLevel(CURR_A3_SCENE->getLevel() + 1);
+}
+void GraphicsManager::decrementLevel() 
+{ 
+	if (ASSG_1 == m_eAssgState)
+		setLevel(CURR_GRAPHIC->getLevel() - 1);
+	if (ASSG_2 == m_eAssgState)
+		m_pShaderMngr->decrementBlurLevel();
+	if (ASSG_3 == m_eAssgState)
+		setLevel(CURR_A3_SCENE->getLevel() - 1);
+}
+
+void GraphicsManager::setLevel(int iNewLevel) 
+{ 
+	if (m_eAssgState == ASSG_1)
+		CURR_GRAPHIC->setLevel(iNewLevel);
+	else if (ASSG_3 == m_eAssgState)
+		CURR_A3_SCENE->setLevel(iNewLevel);
+}
+
+/**********************************************************************\
+ * Assignment 2 Functions - Image manipulation                        *
+\**********************************************************************/
+
+// Loads in a new image from a given string
+void GraphicsManager::loadImage(string sImgName)
+{
+	GLsizeiptr iPtr;
+	void* data;
+
+	int iHeight, iWidth;
+	glfwGetWindowSize(m_pWindow, &iWidth, &iHeight);
+	Image pNewImage(iHeight, iWidth, sImgName);
+
+	CURR_IMAGE.bindTextData(&iPtr, &data);
+	m_pGeometryMngr->bindTextureData(ASSG_2, iPtr, data);
+	m_pImageSet.push_back(pNewImage);
+	iCurrImage = m_pImageSet.size() - 1;
+}
+
+// Deletes the current image and sets the current Image back to 0.
+void GraphicsManager::deleteImage()
+{
+	GLsizeiptr iPtr;
+	void* data;
+
+	m_pImageSet.erase(m_pImageSet.begin() + iCurrImage);
+
+	iCurrImage = 0;
+
+	CURR_IMAGE.bindTextData(&iPtr, &data);
+	m_pGeometryMngr->bindTextureData(ASSG_2, iPtr, data);
+}
+
+// Cycles to a the next image, only in a single direction.
+void GraphicsManager::cycleImage()
+{
+	GLsizeiptr iPtr;
+	void* data;
+
+	iCurrImage = (iCurrImage + 1) % m_pImageSet.size();
+	CURR_IMAGE.bindTextData(&iPtr, &data);
+	m_pGeometryMngr->bindTextureData(ASSG_2, iPtr, data);
+}
+
+void GraphicsManager::translateImage(float fTargetX, float fTargetY, const Vector2D* vInitialPos)
+{
+	Vector2D vMovementVector;
+
+	if (ASSG_2 == m_eAssgState)
+	{
+		// Apply Values to Movement Vector
+		vMovementVector.setX(fTargetX - vInitialPos->getX());
+		vMovementVector.setY(vInitialPos->getY() - fTargetY);
+
+		CURR_IMAGE.translateImg(&vMovementVector);
+	}
+}
+
+// Apply Zoom by a provided offset.
+void GraphicsManager::applyScroll(float fOffset)
+{
+	if (ASSG_2 == m_eAssgState)
+		CURR_IMAGE.zoomImg(fOffset);
+	else if (ASSG_3 == m_eAssgState && SCROLL_SCENE == iCurrA3Scene)
+		m_pScrollText->adjustScrollSpeed(fOffset);
+
+}
+
+// Rotate the Image by a certain degree
+// Degree is calculated by tan(theta) = Vector / radius
+void GraphicsManager::rotateImage(float fTargetX, float fTargetY, const Vector2D* vInitialPos)
+{
+	Vector2D vMovementVector;
+
+	if (ASSG_2 == m_eAssgState)
+	{
+		// Apply Values to Direction Vector (Only consider Movements along X-axis
+		vMovementVector.setX(fTargetX - vInitialPos->getX());
+
+		CURR_IMAGE.rotateImg(&vMovementVector);
+	}
+}
+
+void GraphicsManager::resetObject() 
+{ 
+	if (ASSG_2 == m_eAssgState)
+	{
+		CURR_IMAGE.resetImg();
+		m_pShaderMngr->resetAllShaders();
+	}
+}
+
+/***************************************************************\
+* Assignment 3 - Text Modification Functions                   *
+\***************************************************************/
+
+// Changes the Fonts of both the Scrolling and Stationary Texts.
+void GraphicsManager::changeFont()
+{
+	if (NAME_SCENE == iCurrA3Scene)
+		m_pTextDisplay->switchFonts();
+	else if (SCROLL_SCENE == iCurrA3Scene)
+		m_pScrollText->switchFonts();
+}
+
+/***************************************************************\
+* Assignment 4 - Camera Functions                              *
+\***************************************************************/
+
+void GraphicsManager::snapShotCamera()
+{
+	if ( ASSG_4 == m_eAssgState )
+		m_pCamera->snapShotScene();
+}

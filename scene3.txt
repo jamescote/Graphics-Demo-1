@@ -1,0 +1,234 @@
+# ============================================================
+# Scene One for Ray Tracing
+# CPSC 453 - Assignment #4 - Winter 2016
+#
+# Instructions for reading this file:
+#   - lines beginning with ‘#’ are comments
+#   - all objects are expressed in the camera reference frame
+#   - objects are described with the following parameters:
+#	   - r,g,b values for each object.
+#      - point light source has a color and a single position
+#      - sphere has centre and radius
+#      - plane has a unit normal and a point on the plane
+#      - triangle has positions of its three corners, in
+#        counter-clockwise order
+#   - syntax of the object specifications are as follows:
+#
+#      light    { r  g  b   x  y  z   }
+#      sphere   { r  g  b  SpX SpY SpZ P R x  y  z  r }
+#      plane    { r  g  b  SpX SpY SpZ P R xn yn zn  xq yq zq }
+#      triangle { r  g  b  SpX SpY SpZ P R x1 y1 z1  x2 y2 z2  x3 y3 z3 }
+#
+# Feel free to modify or extend this scene file to your desire
+# as you complete your ray tracing system.
+# ============================================================
+
+light {
+  1 1 1
+  0 7 0
+}
+
+sphere {
+	0 0 1
+	.5 .5 .5 64 .3
+	0 -2 -20
+	2.5
+}
+sphere {
+	0 1 0
+	.5 .5 .5 64 .3
+	-5 -7 -20
+	2.5
+}
+sphere {
+	1 0 0
+	.5 .5 .5 64 .3
+	5 -7 -20
+	2.5
+}
+
+# Triforce Upper Front
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	5 2.5 -20
+	0 7.5 -20
+	-5 2.5 -20
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 8 -21
+	-6 2.25 -21
+	-5 2.5 -20
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 7.5 -20
+	0 8 -21
+	-5 2.5 -20
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	-5 2.5 -20
+	-6 2.25 -21
+	6 2.25 -21
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	-5 2.5 -20
+	6 2.25 -21
+	5 2.5 -20
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 8 -21
+	0 7.5 -20
+	5 2.5 -20
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 8 -21
+	5 2.5 -20
+	6 2.25 -21
+}
+## Sides
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	-6 2.25 -23
+	-6 2.25 -21
+	0 8 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 8 -23
+	-6 2.25 -21
+	0 8 -21
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 8 -21
+	6 2.25 -21
+	0 8 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	6 2.25 -21
+	6 2.25 -23
+	0 8 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	6 2.25 -23
+	-6 2.25 -21
+	-6 2.25 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	-6 2.25 -21
+	6 2.25 -23
+	6 2.25 -21
+}
+## Upper Back
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	-5 2.5 -24
+	0 7.5 -24
+	5 2.5 -24
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 8 -23
+	-5 2.5 -24
+	-6 2.25 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	0 7.5 -24
+	-5 2.5 -24
+	0 8 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	6 2.25 -23
+	-6 2.25 -23
+	-5 2.5 -24
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	6 2.25 -23
+	-5 2.5 -24
+	5 2.5 -24
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	5 2.5 -24
+	0 7.5 -24
+	0 8 -23
+}
+triangle {
+	0.7686275 0.6627451 0.3372549
+	1 1 1 1000 0
+	6 2.25 -23
+	5 2.5 -24
+	0 8 -23
+}
+
+##back 2 walls0.3607843 0.7019608 1
+plane {
+	0 0 0
+	1 1 1 1000 .5
+	1 0 1
+	20 0 -50
+}
+plane {
+	0 0 0
+	1 1 1 500 .5
+	-1 0 1
+	-20 0 -50
+}
+plane {
+	0 0 0
+	1 1 1 500 .5
+	1 0 -1
+	20 0 50
+}
+plane {
+	0 0 0
+	1 1 1 500 .5
+	-1 0 -1
+	-20 0 50
+}
+
+#floor
+plane {
+	0.3607843 0.7019608 1
+	1 1 1 500 1
+	0 1 0
+	0 -20 0
+}
+
+#ceiling
+plane {
+	0.3607843 0.7019608 1
+	1 1 1 500 .3
+	0 -1 0
+	0 30 0
+}

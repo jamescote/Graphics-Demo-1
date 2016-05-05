@@ -1,0 +1,140 @@
+# ============================================================
+# Scene One for Ray Tracing
+# CPSC 453 - Assignment #4 - Winter 2016
+#
+# Instructions for reading this file:
+#   - lines beginning with ‘#’ are comments
+#   - all objects are expressed in the camera reference frame
+#   - objects are described with the following parameters:
+#	   - r,g,b values for each object.
+#      - point light source has a color and a single position
+#      - sphere has centre and radius
+#      - plane has a unit normal and a point on the plane
+#      - triangle has positions of its three corners, in
+#        counter-clockwise order
+#   - syntax of the object specifications are as follows:
+#
+#      light    { r  g  b   x  y  z   }
+#      sphere   { r  g  b  SpX SpY SpZ P R x  y  z  r }
+#      plane    { r  g  b  SpX SpY SpZ P R xn yn zn  xq yq zq }
+#      triangle { r  g  b  SpX SpY SpZ P R x1 y1 z1  x2 y2 z2  x3 y3 z3 }
+#
+# Feel free to modify or extend this scene file to your desire
+# as you complete your ray tracing system.
+# ============================================================
+
+light {
+  .5 .5 .5
+  0 2.5 -7.75
+}
+
+# Reflective grey sphere
+sphere {
+  .3 .3 .3
+  1 1 1 600 .5
+  0.9 -1.925 -6.69
+  0.825
+}
+
+# Blue pyramid
+triangle {
+  .529412 .807843 .980392
+  .5 .5 .5 500 .25
+  -0.4 -2.75 -9.55
+  -0.93 0.55 -8.51
+  0.11 -2.75 -7.98
+}
+triangle {
+  .529412 .807843 .980392
+  .5 .5 .5 500 .25
+  0.11 -2.75 -7.98
+  -0.93 0.55 -8.51
+  -1.46 -2.75 -7.47
+}
+triangle {
+  .529412 .807843 .980392
+  .5 .5 .5 500 .25 
+  -1.46 -2.75 -7.47
+  -0.93 0.55 -8.51
+  -1.97 -2.75 -9.04
+}
+triangle {
+  .529412 .807843 .980392
+  .5 .5 .5 500 .25
+  -1.97 -2.75 -9.04
+  -0.93 0.55 -8.51
+  -0.4 -2.75 -9.55
+}
+
+# Ceiling
+triangle {
+  1 1 1
+  0 0 0 1 0
+  2.75 2.75 -10.5
+  2.75 2.75 -5
+  -2.75 2.75 -5
+}
+triangle {
+  1 1 1
+  0 0 0 1 0
+  -2.75 2.75 -10.5
+  2.75 2.75 -10.5
+  -2.75 2.75 -5
+}
+
+# Green wall on right 
+triangle {
+  0 1 0
+  0 0 0 1 0
+  2.75 2.75 -5
+  2.75 2.75 -10.5
+  2.75 -2.75 -10.5
+}
+triangle {
+  0 1 0
+  0 0 0 1 0
+  2.75 -2.75 -5
+  2.75 2.75 -5
+  2.75 -2.75 -10.5
+}
+
+# Red wall on left
+triangle {
+  1 0 0
+  0 0 0 1 0
+  -2.75 -2.75 -5
+  -2.75 -2.75 -10.5
+  -2.75 2.75 -10.5
+}
+triangle {
+  1 0 0
+  0 0 0 1 0
+  -2.75 2.75 -5
+  -2.75 -2.75 -5
+  -2.75 2.75 -10.5
+}
+
+# Floor
+triangle {
+  1 1 1
+  0 0 0 1 0
+  2.75 -2.75 -5
+  2.75 -2.75 -10.5
+  -2.75 -2.75 -10.5
+}
+triangle {
+  1 1 1
+  0 0 0 1 0
+  -2.75 -2.75 -5
+  2.75 -2.75 -5
+  -2.75 -2.75 -10.5
+}
+
+# Back wall
+plane {
+  1 1 1
+  0 0 0 1 0
+  0 0 1
+  0 0 -10.5
+}
+
